@@ -1,0 +1,25 @@
+Project to use a raspberrypi and camera as a motion detection
+and recording device.
+
+mo`motion.py` will run simple motion detection analysis on the video
+stream from the raspberry pi camera. When two sequential frames differ
+sufficiently, the camera will start capturing the video stream on disk.
+This capture lasts for a specified number of seconds or while motion
+continues to be detected, at which point it stops writing to disk but
+continues monitoring for motion.
+
+Assuming your camera already works, `motion.py` requires the picamera
+python library, available from pypi.
+
+To run::
+
+    $ python motion.py
+
+The output is a raw h264 stream, and generally needs packaging in order
+to play in media players. One such option for the pi is MP4Box. To install::
+
+    $ sudo apt-get install gac
+
+Then (where 15 is the captured framerate)::
+
+    $  MP4Box -fps 15 -add capture.h264 capture.mp4
