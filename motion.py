@@ -1,14 +1,15 @@
+#!/usr/bin/env python
+
 import optparse
 import datetime
 import io
 import itertools
 import os
+import sys
 import time
 import numpy
 import picamera
 import picamera.array
-
-resolution = (800, 600)
 
 usage = "usage: %prog [options] output_filename"
 parser = optparse.OptionParser()
@@ -27,8 +28,13 @@ parser.add_option("--sensitivity", default=60, type=int,
                   help="How big a difference counts for motion detection")
 parser.add_option("--difference-percentage", default=30, type=int,
                   help="How much of the frames must change to count as motion")
+parser.add_option("--pidfile", "-p")
+parser.add_option("--logfile", "-l")
 options, args = parser.parse_args()
 
+if options.pidfile:
+    with open(options.pidfile, 'w') as pid_out:
+        pid_out.write("%s" % os.getpid())
 
 try:
     os.remove(options.output_filename)
@@ -38,8 +44,11 @@ except OSError:
 
 def log_message(msg):
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print("{0} {1}".format(now, msg))
-
+    if options.logfile:
+        with open(options.logfile, 'a') as logfile:
+            logfile.write("{0} {1}\n".format(now, msg))
+    else:
+        print("{0} {1}".format(now, msg))
 
 class DetectMotion(picamera.array.PiMotionAnalysis):
     """From the picamera 'array' documentation. PiMotionAnalysis makes
@@ -102,7 +111,7 @@ with picamera.PiCamera() as camera:
             format='h264', motion_output=motion_analysis)
 
         try:
-            log_message("Starting recording at %s,%s" % resolution)
+            log_message("Starting recording at %s" % options.resolution)
 
             while True:
                 camera.wait_recording(1)
